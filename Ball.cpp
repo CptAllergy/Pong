@@ -24,6 +24,13 @@ CircleShape Ball::getShape()
     return ballShape;
 }
 
+Vector2f Ball::getCenter()
+{
+    float x = this->getPosition().left + (this->getPosition().width / 2);
+    float y = this->getPosition().top + (this->getPosition().height / 2);
+    return Vector2f(x, y);
+}
+
 float Ball::getXVelocity()
 {
     return xVelocity;
@@ -38,6 +45,13 @@ void Ball::reboundBat()
 {
     position.x -= (xVelocity * 30);
     xVelocity = -xVelocity;
+
+}
+
+void Ball::reboundBatY()
+{
+    position.y -= (yVelocity * 50);
+    yVelocity = -yVelocity;
 
 }
 

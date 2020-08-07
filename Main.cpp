@@ -5,27 +5,32 @@
 #include "Menu.h"
 #include <sstream>
 #include <cstdlib>
+#include <ctime>
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 
 // Avoid having to put sf in front of all the SFML classes and functions
 using namespace sf;
 
 int windowWidth = 1920;
 int windowHeight = 1080;
-
-//has the title "Pong"
-RenderWindow window(VideoMode(windowWidth, windowHeight), "Pong");
-
-Menu menu(windowWidth, windowHeight);
-
 int score1 = 0;
 int score2 = 0;
 bool isAIOn = true;
 
+//Window with the title "Pong"
+RenderWindow window(VideoMode(windowWidth, windowHeight), "Pong");
+
+Menu menu(windowWidth, windowHeight);
+
+sf::SoundBuffer buffer;
+sf::Sound sound;
+
+
 // create a bat
 Bat bat(windowWidth - 50, windowHeight / 2);
 
-Bat bat2(50, windowHeight / 2, 0.085f);
+Bat bat2(50, windowHeight / 2, 0.15f);
 
 // create a ball
 Ball ball(windowWidth / 2, windowHeight / 2, windowWidth / 2, windowHeight / 2);
@@ -40,14 +45,32 @@ enum State
 {
 	STATE_AI,
 	STATE_2,
-	STATE_MENU
+	STATE_MENU,
 };
 
 State state = STATE_MENU;
 
+void playRandomSound()
+{
+	int r = std::rand() % 3;
+	switch (r)
+	{
+	case 0:
+		buffer.loadFromFile("pongblipf5.wav");
+		break;
+	case 1:
+		buffer.loadFromFile("pongblipf4.wav");
+		break;
+	case 2:
+		buffer.loadFromFile("pongblipf3.wav");
+		break;
+	}
+	sound.setBuffer(buffer);
+	sound.play();
+}
+
 void gameFunction()
 {
-
 	Event event;
 	while (window.pollEvent(event))
 	{
@@ -61,36 +84,39 @@ void gameFunction()
 				state = STATE_MENU;
 				score1 = 0;
 				score2 = 0;
+				bat.getShape().setPosition(windowWidth - 50, windowHeight / 2);
+				bat2.getShape().setPosition(50, windowHeight / 2);
+				ball.getShape().setPosition(windowWidth / 2, windowHeight / 2);
 			}
 		}
 	}
 
-	if (Keyboard::isKeyPressed(Keyboard::Up) && bat.getPosition().top >= 0)
+	if (Keyboard::isKeyPressed(Keyboard::Up) && bat.getPosition().top >= 7)
 	{
 		bat.moveUp();
 	}
-	else if (Keyboard::isKeyPressed(Keyboard::Down) && bat.getPosition().top + bat.getPosition().height <= windowHeight)
+	else if (Keyboard::isKeyPressed(Keyboard::Down) && bat.getPosition().top + bat.getPosition().height <= (windowHeight - 7))
 	{
 		bat.moveDown();
 	}
 
-	if (Keyboard::isKeyPressed(Keyboard::W) && bat2.getPosition().top >= 0 && !isAIOn)
+	if (Keyboard::isKeyPressed(Keyboard::W) && bat2.getPosition().top >= 7 && !isAIOn)
 	{
 		bat2.moveUp();
 	}
-	else if (Keyboard::isKeyPressed(Keyboard::S) && bat2.getPosition().top + bat2.getPosition().height <= windowHeight && !isAIOn)
+	else if (Keyboard::isKeyPressed(Keyboard::S) && bat2.getPosition().top + bat2.getPosition().height <= (windowHeight - 7) && !isAIOn)
 	{
 		bat2.moveDown();
 	}
 
-	if (bat2.getPosition().top >= 0 && isAIOn)
+	if (bat2.getPosition().top >= 7 && isAIOn)
 	{
 		if ((bat2.getPosition().top + (bat2.getPosition().height / 2)) > ball.getPosition().top)
 		{
 			bat2.moveUp();
 		}
 	}
-	if (bat2.getPosition().top + bat2.getPosition().height <= windowHeight && isAIOn)
+	if (bat2.getPosition().top + bat2.getPosition().height <= (windowHeight - 7) && isAIOn)
 	{
 		if ((bat2.getPosition().top + (bat2.getPosition().height / 2)) < ball.getPosition().top)
 		{
@@ -118,19 +144,47 @@ void gameFunction()
 	// Handle ball hitting sides
 	if (ball.getPosition().top <= 0 || ball.getPosition().top + 10 > windowHeight)
 	{
+		playRandomSound();
 		ball.reboundSides();
 	}
 
 	// Has the ball hit the bat?
-	if (ball.getPosition().intersects(bat.getPosition()))
+	if (ball.getPosition().intersects(bat.getPosition()) && ball.getCenter().x < bat.getPosition().left + (bat.getPosition().width / 2))
 	{
+		playRandomSound();
+
 		// Hit detected so reverse the ball
-		ball.reboundBat();
+		if (ball.getCenter().y >= (bat.getPosition().top + bat.getPosition().height))
+		{
+			ball.reboundBatY();
+		}
+		else if (ball.getCenter().y <= bat.getPosition().top)
+		{
+			ball.reboundBatY();
+		}
+		else
+		{
+			ball.reboundBat();
+		}
 	}
-	if (ball.getPosition().intersects(bat2.getPosition()))
+
+	if (ball.getPosition().intersects(bat2.getPosition()) && ball.getCenter().x > bat2.getPosition().left + (bat2.getPosition().width / 2))
 	{
+		playRandomSound();
+
 		// Hit detected so reverse the ball
-		ball.reboundBat();
+		if (ball.getCenter().y >= (bat2.getPosition().top + bat2.getPosition().height))
+		{
+			ball.reboundBatY();
+		}
+		else if (ball.getCenter().y <= bat2.getPosition().top)
+		{
+			ball.reboundBatY();
+		}
+		else
+		{
+			ball.reboundBat();
+		}
 	}
 
 	ball.update();
@@ -147,12 +201,10 @@ void gameFunction()
 
 	window.draw(bat.getShape());
 	window.draw(bat2.getShape());
-
 	window.draw(ball.getShape());
 
 	// Draw our score
 	window.draw(hud);
-
 }
 
 void gameMenu()
@@ -205,8 +257,12 @@ int main()
 	// http://www.dafont.com/theme.php?cat=302
 	font.loadFromFile("DS-DIGIT.ttf");
 
+	buffer.loadFromFile("pongblipf5.wav");
+
 	// Set the font to our message
 	hud.setFont(font);
+
+	std::srand(std::time(nullptr));
 
 	// Make it really big
 	hud.setCharacterSize(50);
@@ -217,7 +273,6 @@ int main()
 	// This "while" loop goes round and round- perhaps forever
 	while (window.isOpen())
 	{
-
 		switch (state)
 		{
 		case STATE_AI:
@@ -237,8 +292,7 @@ int main()
 
 		// Show everything we just drew
 		window.display();
-
-
+		 
 
 	}// This is the end of the "while" loop
 

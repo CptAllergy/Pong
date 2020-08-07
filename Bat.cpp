@@ -9,7 +9,7 @@ Bat::Bat(float startX, float startY)
 
     batShape.setSize(sf::Vector2f(10, 200));
     batShape.setPosition(position);
-    this->batSpeed = 0.1f;
+    this->batSpeed = 0.15f;
 }
 
 Bat::Bat(float startX, float startY, float batSpeed)

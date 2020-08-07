@@ -11,8 +11,8 @@ private:
     // A RectangleShape object called ref
     CircleShape ballShape;
 
-    float xVelocity = .1f;
-    float yVelocity = .1f;
+    float xVelocity = .18f;
+    float yVelocity = .18f;
     float centerX, centerY;
 
 public:
@@ -22,11 +22,15 @@ public:
 
     CircleShape getShape();
 
+    Vector2f getCenter();
+
     float getXVelocity();
 
     void reboundSides();
 
     void reboundBat();
+
+    void reboundBatY();
 
     void hitRight();
 

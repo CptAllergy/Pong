@@ -8,7 +8,7 @@ Menu::Menu(int width, int height)
 	{
 		text[i].setFont(font);
 		text[i].setFillColor(sf::Color::White);
-		text[i].setPosition(sf::Vector2f(width / 2, (height / 4) * (i + 1)));
+		text[i].setPosition(sf::Vector2f((width / 2), (height / 4) * (i + 1)));
 		text[i].setCharacterSize(50);
 	}
 
